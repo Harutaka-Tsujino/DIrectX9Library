@@ -13,6 +13,7 @@
 #define KEY_AND_MOUSE 2
 
 typedef LPDIRECT3DTEXTURE9 TEXTUREID;
+typedef LPD3DXFONT FONTID;
 
 enum AXIS
 {
@@ -26,7 +27,9 @@ enum RENDER_FUNC_RETURN_VAL
 	FUNC_OK,
 	CREATE_TEX_ERR,
 	SET_TEX_ERR,
-	DRAW_IMAGE_ERR
+	DRAW_IMAGE_ERR,
+	CREATE_FONT_ERR,
+	DRAW_TEXT_ERR,
 };
 
 extern LPDIRECT3D9 g_pDirect3D;
@@ -56,7 +59,7 @@ typedef struct
 	FLOAT m_tv;
 }CustomVertex;
 
-INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth = 1280, INT displayHeight = 720, INT keyAndMouse = KEY_AND_MOUSE);
+INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth = 1280, INT displayHeight = 720, INT keyAndMouse = KEY_AND_MOUSE, BOOL cullPolygon = TRUE);
 
 VOID CreateWindowOverall(HWND *hWnd, MSG *msg, HINSTANCE hInst, const CHAR *appName, INT displayWidth, INT displayHeight);
 
@@ -70,9 +73,9 @@ HRESULT InitDirect3D(VOID);
 
 VOID SetBuckBufferOverall(VOID);
 
-HRESULT InitDirect3DDevice(HWND hWnd);
+HRESULT InitDirect3DDevice(HWND hWnd, BOOL cullPolygon);
 
-VOID SetRenderStateOverall(VOID);
+VOID SetRenderStateOverall(BOOL cullPolygon);
 
 VOID SetTextureStageStateOverall(VOID);
 
@@ -98,3 +101,7 @@ VOID RescaleImage(CustomVertex *dest, CustomVertex *src, FLOAT expansionRateX, F
 RENDER_FUNC_RETURN_VAL RoadTexture(const CHAR *pTexturePass, TEXTUREID *pTextureId);
 
 RENDER_FUNC_RETURN_VAL DrawImage(CustomVertex *pCustomVertex, TEXTUREID textureId);
+
+RENDER_FUNC_RETURN_VAL SetFont(INT scaleX, UINT scaleY, const CHAR *pFontType, FONTID *pFontId, UINT thickness = 0);
+
+RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT format, FONTID pFontId, DWORD color =0xFFFFFFFF);

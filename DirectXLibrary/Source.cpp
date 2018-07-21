@@ -14,7 +14,6 @@
 LPDIRECT3D9 g_pDirect3D = NULL;
 LPDIRECT3DDEVICE9 g_pDirect3DDevice = NULL;
 LPDIRECTINPUT8 g_pDirectInput = NULL;
-LPDIRECT3DTEXTURE9 g_pDirect3DTexture = NULL;
 LPDIRECTINPUTDEVICE8 g_pDirectInputDevice[KEY_AND_MOUSE] = { NULL,NULL };
 DIMOUSESTATE g_DirectInputMouseState;
 LPD3DXFONT g_pDirect3DXFont = NULL;
@@ -22,20 +21,46 @@ D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
 
 VOID FunctionFoo(VOID)
 {
+	
+	return;
+}
+
+KeyState *GetKeyInfo(VOID)
+{
+	g_pDirectInputDevice[KEY]->Acquire();
+
+	static KeyState keyState;
+
+	g_pDirectInputDevice[KEY]->GetDeviceState(sizeof(BYTE)*256, &keyState.diks);
+
+	return &keyState;
+}
+
+VOID Render(VOID)
+{
 	enum TEX
 	{
 		bulletBlockTEX,
 		TEX_MAX
 	};
 
+	enum FONT
+	{
+		testFONT,
+		FONT_MAX
+	};
+
 	static INT frameCount = -1;
 
 	static TEXTUREID textureIds[TEX_MAX];
 
+	static FONTID fontIds[FONT_MAX];
+
 	if (frameCount == -1)
 	{
 		RoadTexture("bulletBlock.png", &textureIds[bulletBlockTEX]);
-		
+		SetFont(40, 40, "Times New Roman", &fontIds[testFONT], 20);
+
 		frameCount = 0;
 	}
 
@@ -47,13 +72,15 @@ VOID FunctionFoo(VOID)
 
 	CV testMoved[4];
 
-	RotateImageDeg(testMoved, testSrc,(FLOAT)(frameCount*6),yAXIS);
+	RotateImageDeg(testMoved, testSrc, (FLOAT)(frameCount * 6), yAXIS);
 
 	CirculateImageDeg(testMoved, testMoved, (FLOAT)frameCount, 0.f, 0.f);
 
 	RotateImageDeg(testMoved, testMoved, (FLOAT)(frameCount * 3), zAXIS);
 
 	DrawImage(testMoved, textureIds[bulletBlockTEX]);
+
+	WriteText(300, 300, "testTestTEST", DT_RIGHT, fontIds[testFONT]);
 
 	frameCount++;
 
@@ -67,7 +94,7 @@ VOID FunctionFoo(VOID)
 
 INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR szStr, INT iCmdShow)
 {
-	return CreateWindowAndRepeatToControlAndRender(hInst, "testApp", FunctionFoo, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+	return CreateWindowAndRepeatToControlAndRender(hInst, "testApp", FunctionFoo, DISPLAY_WIDTH, DISPLAY_HEIGHT,KEY_AND_MOUSE,FALSE);
 }
 
 //VOID FreeDx(INT g_texMax,INT)
@@ -89,7 +116,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR szStr, INT iCmdSh
 //	SAFE_RELEASE(g_pDirect3D);
 //}
 
-INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth, INT displayHeight, INT keyAndMouse)
+INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth, INT displayHeight, INT keyAndMouse,BOOL cullPolygon)
 {
 	HWND hWnd = NULL;
 	MSG	msg;
@@ -101,7 +128,7 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 		return FALSE;
 	}
 
-	if (FAILED(InitDirect3DDevice(hWnd)))
+	if (FAILED(InitDirect3DDevice(hWnd, cullPolygon)))
 	{
 		return FALSE;
 	}
@@ -119,11 +146,9 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 
 			if (CoordinateFPS(CHECK_FPS))
 			{
-				g_pDirect3DDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0x00, 0x00, 0x00), 1.0, 0);
-				g_pDirect3DDevice->BeginScene();
+				PrepareRender();
 				(*func)();
-				g_pDirect3DDevice->EndScene();
-				g_pDirect3DDevice->Present(NULL, NULL, NULL, NULL);
+				CleanUpRender();
 			}
 		}
 	}
@@ -246,7 +271,7 @@ VOID SetBuckBufferOverall(VOID)
 	return;
 }
 
-HRESULT InitDirect3DDevice(HWND hWnd)
+HRESULT InitDirect3DDevice(HWND hWnd,BOOL cullPolygon)
 {
 	if (FAILED(g_pDirect3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd,
 		D3DCREATE_MIXED_VERTEXPROCESSING,&g_Direct3DPresentParameters, &g_pDirect3DDevice)))
@@ -261,7 +286,7 @@ HRESULT InitDirect3DDevice(HWND hWnd)
 		}
 	}
 
-	SetRenderStateOverall();
+	SetRenderStateOverall(cullPolygon);
 
 	SetTextureStageStateOverall();
 
@@ -270,12 +295,16 @@ HRESULT InitDirect3DDevice(HWND hWnd)
 	return S_OK;
 }
 
-VOID SetRenderStateOverall(VOID)
+VOID SetRenderStateOverall(BOOL cullPolygon)
 {
 	g_pDirect3DDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 	g_pDirect3DDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 	g_pDirect3DDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	g_pDirect3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	
+	if (!cullPolygon)
+	{
+		g_pDirect3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	}
 
 	return;
 }
@@ -623,4 +652,50 @@ RENDER_FUNC_RETURN_VAL DrawImage(CustomVertex *pCustomVertex, TEXTUREID textureI
 	}
 
 	return FUNC_OK;
+}
+
+RENDER_FUNC_RETURN_VAL SetFont(INT scaleX, UINT scaleY, const CHAR *pFontType, FONTID *pFontId, UINT thickness)
+{
+	if (FAILED(D3DXCreateFont(g_pDirect3DDevice, scaleX, scaleY, thickness, 0, 0, 0, 0, 0, 0, pFontType, pFontId)))
+	{
+		return CREATE_FONT_ERR;
+	}
+
+	return FUNC_OK;
+}
+
+RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT format, FONTID pFontId, DWORD color)
+{
+	D3DXFONT_DESC fontSetting;
+
+	pFontId->GetDesc(&fontSetting);
+
+	const FLOAT charSpace = 1.1f;
+	INT textScaleX = (fontSetting.Width* charSpace * strlen(pText))/2;
+	INT textScaleY = fontSetting.Height/2;
+
+	RECT rcText = { posX - textScaleX ,posY - textScaleY ,posX + textScaleX ,posY + textScaleY };
+
+	if (FAILED(pFontId->DrawText(NULL, pText, -1, &rcText, format, color)))
+	{
+		return DRAW_TEXT_ERR;
+	}
+
+	return FUNC_OK;
+}
+
+VOID PrepareRender(VOID)
+{
+	g_pDirect3DDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0x00, 0x00, 0x00), 1.0, 0);
+	g_pDirect3DDevice->BeginScene();
+
+	return;
+}
+
+VOID CleanUpRender(VOID)
+{
+	g_pDirect3DDevice->EndScene();
+	g_pDirect3DDevice->Present(NULL, NULL, NULL, NULL);
+
+	return;
 }
