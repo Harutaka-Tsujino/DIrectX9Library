@@ -19,21 +19,56 @@ DIMOUSESTATE g_DirectInputMouseState;
 LPD3DXFONT g_pDirect3DXFont = NULL;
 D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
 
+KeyState g_keyState;
+
 VOID FunctionFoo(VOID)
 {
-	
+
 	return;
 }
 
-KeyState *GetKeyInfo(VOID)
+VOID GetKeyInfo(VOID)
 {
 	g_pDirectInputDevice[KEY]->Acquire();
+	g_pDirectInputDevice[KEY]->GetDeviceState(sizeof(BYTE)*256, g_keyState.diks);
 
-	static KeyState keyState;
+	memset(g_keyState.keyPush, NULL, sizeof(BOOL)*256*4);
 
-	g_pDirectInputDevice[KEY]->GetDeviceState(sizeof(BYTE)*256, &keyState.diks);
+	for (INT key = 0; key < 256; key++)
+	{
+		if (g_keyState.prevDiks[key] & 0x80)
+		{
+			if (g_keyState.diks[key] & 0x80)
+			{
+				g_keyState.keyHold[key] = TRUE;
+			}
 
-	return &keyState;
+			else
+			{
+				g_keyState.keyRelease[key] = TRUE;
+			}
+		}
+
+		else
+		{
+			if (g_keyState.diks[key] & 0x80)
+			{
+				g_keyState.keyPush[key] = TRUE;
+			}
+
+			else
+			{
+				g_keyState.keyUninput[key] = TRUE;
+			}
+		}
+	}
+
+	return;
+}
+
+VOID UpdatePrevKeyInfo()
+{
+	memcpy(g_keyState.prevDiks, g_keyState.diks, sizeof(BYTE) * 256);
 }
 
 VOID Render(VOID)
@@ -94,7 +129,7 @@ VOID Render(VOID)
 
 INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR szStr, INT iCmdShow)
 {
-	return CreateWindowAndRepeatToControlAndRender(hInst, "testApp", FunctionFoo, DISPLAY_WIDTH, DISPLAY_HEIGHT,KEY_AND_MOUSE,FALSE);
+	return CreateWindowAndRepeatToControlAndRender(hInst, "testApp", FunctionFoo, DISPLAY_WIDTH, DISPLAY_HEIGHT,FALSE);
 }
 
 //VOID FreeDx(INT g_texMax,INT)
@@ -116,7 +151,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR szStr, INT iCmdSh
 //	SAFE_RELEASE(g_pDirect3D);
 //}
 
-INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth, INT displayHeight, INT keyAndMouse,BOOL cullPolygon)
+INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth, INT displayHeight,BOOL cullPolygon)
 {
 	HWND hWnd = NULL;
 	MSG	msg;
@@ -133,7 +168,7 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 		return FALSE;
 	}
 
-	if (FAILED(InitDinput(hWnd, keyAndMouse)))
+	if (FAILED(InitDinput(hWnd)))
 	{
 		return FALSE;
 	}
@@ -146,9 +181,11 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 
 			if (CoordinateFPS(CHECK_FPS))
 			{
+				GetKeyInfo();
 				PrepareRender();
 				(*func)();
 				CleanUpRender();
+				UpdatePrevKeyInfo();
 			}
 		}
 	}
@@ -319,7 +356,7 @@ VOID SetTextureStageStateOverall(VOID)
 	return;
 }
 
-HRESULT InitDinput(HWND hWnd, INT keyAndMouse)
+HRESULT InitDinput(HWND hWnd)
 {
 	HRESULT hr;
 
@@ -346,36 +383,35 @@ HRESULT InitDinput(HWND hWnd, INT keyAndMouse)
 		return hr;
 	}
 
-	if (keyAndMouse == KEY_AND_MOUSE)
+	memset(&g_keyState,NULL,sizeof(KeyState));
+
+	if (FAILED(hr = g_pDirectInput->CreateDevice(GUID_SysMouse,
+		&(g_pDirectInputDevice[MOUSE]), NULL)))
 	{
-		if (FAILED(hr = g_pDirectInput->CreateDevice(GUID_SysMouse,
-			&(g_pDirectInputDevice[MOUSE]), NULL)))
-		{
-			return hr;
-		}
+		return hr;
+	}
 
-		if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetDataFormat(&c_dfDIMouse)))
-		{
-			return hr;
-		}
+	if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetDataFormat(&c_dfDIMouse)))
+	{
+		return hr;
+	}
 
-		if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetCooperativeLevel(
-			hWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND)))
-		{
-			return hr;
-		}
+	if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetCooperativeLevel(
+		hWnd, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND)))
+	{
+		return hr;
+	}
 
-		DIPROPDWORD diprop;
-		diprop.diph.dwSize = sizeof(diprop);
-		diprop.diph.dwHeaderSize = sizeof(diprop.diph);
-		diprop.diph.dwObj = 0;
-		diprop.diph.dwHow = DIPH_DEVICE;
-		diprop.dwData = DIPROPAXISMODE_REL;
+	DIPROPDWORD diprop;
+	diprop.diph.dwSize = sizeof(diprop);
+	diprop.diph.dwHeaderSize = sizeof(diprop.diph);
+	diprop.diph.dwObj = 0;
+	diprop.diph.dwHow = DIPH_DEVICE;
+	diprop.dwData = DIPROPAXISMODE_REL;
 
-		if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetProperty(DIPROP_AXISMODE, &diprop.diph)))
-		{
-			return hr;
-		}
+	if (FAILED(hr = (g_pDirectInputDevice[MOUSE])->SetProperty(DIPROP_AXISMODE, &diprop.diph)))
+	{
+		return hr;
 	}
 
 	return S_OK;

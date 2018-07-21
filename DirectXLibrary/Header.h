@@ -35,10 +35,11 @@ enum RENDER_FUNC_RETURN_VAL
 extern LPDIRECT3D9 g_pDirect3D;
 extern LPDIRECT3DDEVICE9 g_pDirect3DDevice;
 extern LPDIRECTINPUT8 g_pDirectInput;
-extern LPDIRECT3DTEXTURE9 g_pDirect3DTexture;
 extern LPDIRECTINPUTDEVICE8 g_pDirectInputDevice[KEY_AND_MOUSE];
 extern LPD3DXFONT g_pDirect3DXFont;
 extern D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
+
+extern KeyState g_keyState;
 
 typedef struct
 {
@@ -58,6 +59,16 @@ typedef struct
 	FLOAT m_tu;
 	FLOAT m_tv;
 }CustomVertex;
+
+typedef struct
+{
+	BYTE diks[256];
+	BYTE prevDiks[256];
+	BOOL keyPush[256];
+	BOOL keyHold[256];
+	BOOL keyRelease[256];
+	BOOL keyUninput[256];
+}KeyState;
 
 INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth = 1280, INT displayHeight = 720, INT keyAndMouse = KEY_AND_MOUSE, BOOL cullPolygon = TRUE);
 
@@ -105,3 +116,7 @@ RENDER_FUNC_RETURN_VAL DrawImage(CustomVertex *pCustomVertex, TEXTUREID textureI
 RENDER_FUNC_RETURN_VAL SetFont(INT scaleX, UINT scaleY, const CHAR *pFontType, FONTID *pFontId, UINT thickness = 0);
 
 RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT format, FONTID pFontId, DWORD color =0xFFFFFFFF);
+
+VOID PrepareRender(VOID);
+
+VOID CleanUpRender(VOID);
