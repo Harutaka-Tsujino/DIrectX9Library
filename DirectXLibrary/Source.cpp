@@ -15,64 +15,44 @@ LPDIRECT3D9 g_pDirect3D = NULL;
 LPDIRECT3DDEVICE9 g_pDirect3DDevice = NULL;
 LPDIRECTINPUT8 g_pDirectInput = NULL;
 LPDIRECTINPUTDEVICE8 g_pDirectInputDevice[KEY_AND_MOUSE] = { NULL,NULL };
-DIMOUSESTATE g_DirectInputMouseState;
 LPD3DXFONT g_pDirect3DXFont = NULL;
 D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
 
 KeyState g_keyState;
+MouseState g_mouseState;
+
+VOID Control(FLOAT *moveX);
+VOID Render(FLOAT *moveX);
 
 VOID FunctionFoo(VOID)
 {
+	static FLOAT moveX = 0;
+
+	Control(&moveX);
+	Render(&moveX);
 
 	return;
 }
 
-VOID GetKeyInfo(VOID)
+VOID Control(FLOAT *moveX)
 {
-	g_pDirectInputDevice[KEY]->Acquire();
-	g_pDirectInputDevice[KEY]->GetDeviceState(sizeof(BYTE)*256, g_keyState.diks);
-
-	memset(g_keyState.keyPush, NULL, sizeof(BOOL)*256*4);
-
-	for (INT key = 0; key < 256; key++)
+	if (g_keyState.keyPush[DIK_G])
 	{
-		if (g_keyState.prevDiks[key] & 0x80)
-		{
-			if (g_keyState.diks[key] & 0x80)
-			{
-				g_keyState.keyHold[key] = TRUE;
-			}
-
-			else
-			{
-				g_keyState.keyRelease[key] = TRUE;
-			}
-		}
-
-		else
-		{
-			if (g_keyState.diks[key] & 0x80)
-			{
-				g_keyState.keyPush[key] = TRUE;
-			}
-
-			else
-			{
-				g_keyState.keyUninput[key] = TRUE;
-			}
-		}
+		*moveX += 30;
 	}
 
-	return;
+	if (g_mouseState.mousePush[1])
+	{
+		*moveX -= 30;
+	}
 }
 
-VOID UpdatePrevKeyInfo()
+VOID Render(FLOAT *moveX)
 {
-	memcpy(g_keyState.prevDiks, g_keyState.diks, sizeof(BYTE) * 256);
-}
+	SetViewPoint();
 
-VOID Render(VOID)
-{
+	SetFocusOfView();
+
 	enum TEX
 	{
 		bulletBlockTEX,
@@ -113,9 +93,14 @@ VOID Render(VOID)
 
 	RotateImageDeg(testMoved, testMoved, (FLOAT)(frameCount * 3), zAXIS);
 
-	DrawImage(testMoved, textureIds[bulletBlockTEX]);
+	MoveImage(testMoved, testMoved, *moveX, 0);
 
-	WriteText(300, 300, "testTestTEST", DT_RIGHT, fontIds[testFONT]);
+	DrawImage(testMoved, textureIds[bulletBlockTEX]);
+	
+	if (g_mouseState.mouseHold[0]|| g_mouseState.mouseHold[1]|| g_mouseState.mouseHold[2]|| g_mouseState.mouseHold[3])
+	{
+		WriteText(300, 300, "testTestTEST", DT_RIGHT, fontIds[testFONT]);
+	}
 
 	frameCount++;
 
@@ -182,10 +167,12 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 			if (CoordinateFPS(CHECK_FPS))
 			{
 				GetKeyInfo();
+				GetMouseInfo();
 				PrepareRender();
 				(*func)();
 				CleanUpRender();
 				UpdatePrevKeyInfo();
+				UpdatePrevMouseInfo();
 			}
 		}
 	}
@@ -414,43 +401,10 @@ HRESULT InitDinput(HWND hWnd)
 		return hr;
 	}
 
+	memset(&g_mouseState, 0, sizeof(MouseState));
+
 	return S_OK;
 }
-
-VOID GetMouseState(VOID)
-{
-	// 読取前の値を保持します
-	DIMOUSESTATE BakDirectInputMouseState;	// マウス情報(変化検知用)
-
-	memcpy(&BakDirectInputMouseState, &g_DirectInputMouseState, sizeof(g_DirectInputMouseState));
-
-	// ここから、DirectInputで必要なコード -->
-	// マウスの状態を取得します
-	HRESULT	hr = (g_pDirectInputDevice[MOUSE])->GetDeviceState(sizeof(DIMOUSESTATE), &g_DirectInputMouseState);
-
-	if (hr == DIERR_INPUTLOST)
-	{
-		(g_pDirectInputDevice[MOUSE])->Acquire();
-		hr = (g_pDirectInputDevice[MOUSE])->GetDeviceState(sizeof(DIMOUSESTATE), &BakDirectInputMouseState);
-	}
-	// --> ここまで、DirectInputで必要なコード
-
-	if (memcmp(&g_DirectInputMouseState, &g_DirectInputMouseState, sizeof(BakDirectInputMouseState)) != 0) {
-		// 確認用の処理、ここから -->
-		// 値が変わったら表示します
-		CHAR buf[128];
-		wsprintf(buf, "(%5d, %5d, %5d) %s %s %s\n",
-			g_DirectInputMouseState.lX, g_DirectInputMouseState.lY, g_DirectInputMouseState.lZ,
-			(g_DirectInputMouseState.rgbButtons[0] & 0x80) ? "Left" : "--",
-			(g_DirectInputMouseState.rgbButtons[1] & 0x80) ? "Right" : "--",
-			(g_DirectInputMouseState.rgbButtons[2] & 0x80) ? "Center" : "--");
-		OutputDebugString(buf);
-		// --> ここまで、確認用の処理
-	}
-}
-///////////////////////////////////////////////////////////////////////////////////////////
-//描画関係
-///////////////////////////////////////////////////////////////////////////////////////////
 
 VOID Render(VOID)
 {
@@ -707,7 +661,7 @@ RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT for
 	pFontId->GetDesc(&fontSetting);
 
 	const FLOAT charSpace = 1.1f;
-	INT textScaleX = (fontSetting.Width* charSpace * strlen(pText))/2;
+	INT textScaleX = (INT)(fontSetting.Width* charSpace * strlen(pText))/2;
 	INT textScaleY = fontSetting.Height/2;
 
 	RECT rcText = { posX - textScaleX ,posY - textScaleY ,posX + textScaleX ,posY + textScaleY };
@@ -732,6 +686,125 @@ VOID CleanUpRender(VOID)
 {
 	g_pDirect3DDevice->EndScene();
 	g_pDirect3DDevice->Present(NULL, NULL, NULL, NULL);
+
+	return;
+}
+
+
+VOID GetKeyInfo(VOID)
+{
+	g_pDirectInputDevice[KEY]->Acquire();
+	g_pDirectInputDevice[KEY]->GetDeviceState(sizeof(BYTE) * 256, g_keyState.diks);
+
+	memset(g_keyState.keyPush, NULL, sizeof(BOOL) * 256 * 4);
+
+	for (INT key = 0; key < 256; key++)
+	{
+		if (g_keyState.prevDiks[key] & 0x80)
+		{
+			if (g_keyState.diks[key] & 0x80)
+			{
+				g_keyState.keyHold[key] = TRUE;
+			}
+
+			else
+			{
+				g_keyState.keyRelease[key] = TRUE;
+			}
+		}
+
+		else
+		{
+			if (g_keyState.diks[key] & 0x80)
+			{
+				g_keyState.keyPush[key] = TRUE;
+			}
+
+			else
+			{
+				g_keyState.keyUninput[key] = TRUE;
+			}
+		}
+	}
+
+	return;
+}
+
+VOID UpdatePrevKeyInfo()
+{
+	memcpy(g_keyState.prevDiks, g_keyState.diks, sizeof(BYTE) * 256);
+}
+
+VOID GetMouseInfo(VOID)
+{
+	g_pDirectInputDevice[MOUSE]->Acquire();
+	g_pDirectInputDevice[MOUSE]->GetDeviceState(sizeof(DIMOUSESTATE), &g_mouseState.directInputMouseState);
+
+	GetCursorPos(&g_mouseState.absolutePos);
+
+	memset(g_mouseState.mousePush, 0, sizeof(BOOL) * 4 * 4);
+
+	for (INT button = 0; button < 4; button++)
+	{
+		if (g_mouseState.directInputMouseState.rgbButtons[button])
+		{
+			if (g_mouseState.prevDirectInputMouseState.rgbButtons[button])
+			{
+				g_mouseState.mouseHold[button] = TRUE;
+			}
+
+			else
+			{
+				g_mouseState.mouseRelease[button] = TRUE;
+			}
+		}
+
+		else
+		{
+			if (g_mouseState.prevDirectInputMouseState.rgbButtons[button])
+			{
+				g_mouseState.mousePush[button] = TRUE;
+			}
+
+			else
+			{
+				g_mouseState.mouseUninput[button] = TRUE;
+			}
+		}
+	}
+
+	return;
+}
+
+VOID UpdatePrevMouseInfo(VOID)
+{
+	memcpy(&g_mouseState.prevDirectInputMouseState, &g_mouseState.directInputMouseState, sizeof(DIMOUSESTATE));
+
+	return;
+}
+
+VOID SetViewPoint(VOID)
+{
+	D3DXMATRIXA16 matWorld;
+
+	D3DXMatrixIdentity(&matWorld);
+	g_pDirect3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+
+	D3DXVECTOR3 vecEyePt(0.0f, 1.0f, -223.0f);
+	D3DXVECTOR3 vecLookatPt(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 vecUpVec(0.0f, 1.0f, 100.0f);
+	D3DXMATRIXA16 matView;
+	D3DXMatrixLookAtLH(&matView, &vecEyePt, &vecLookatPt, &vecUpVec);
+	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matView);
+
+	return;
+}
+
+VOID SetFocusOfView(VOID)
+{
+	D3DXMATRIXA16 matProj;
+	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 100.0f);
+	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matProj);
 
 	return;
 }

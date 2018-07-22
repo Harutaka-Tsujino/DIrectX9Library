@@ -39,8 +39,6 @@ extern LPDIRECTINPUTDEVICE8 g_pDirectInputDevice[KEY_AND_MOUSE];
 extern LPD3DXFONT g_pDirect3DXFont;
 extern D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
 
-extern KeyState g_keyState;
-
 typedef struct
 {
 	FLOAT m_x;
@@ -70,7 +68,22 @@ typedef struct
 	BOOL keyUninput[256];
 }KeyState;
 
-INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth = 1280, INT displayHeight = 720, INT keyAndMouse = KEY_AND_MOUSE, BOOL cullPolygon = TRUE);
+extern KeyState g_keyState;
+
+typedef struct
+{
+	DIMOUSESTATE directInputMouseState;
+	DIMOUSESTATE prevDirectInputMouseState;
+	POINT absolutePos;
+	BOOL mousePush[4];
+	BOOL mouseHold[4];
+	BOOL mouseRelease[4];
+	BOOL mouseUninput[4];
+}MouseState;
+
+extern MouseState g_mouseState;
+
+INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth = 1280, INT displayHeight = 720, BOOL cullPolygon = TRUE);
 
 VOID CreateWindowOverall(HWND *hWnd, MSG *msg, HINSTANCE hInst, const CHAR *appName, INT displayWidth, INT displayHeight);
 
@@ -90,9 +103,7 @@ VOID SetRenderStateOverall(BOOL cullPolygon);
 
 VOID SetTextureStageStateOverall(VOID);
 
-HRESULT InitDinput(HWND hWnd, INT keyAndMouse);
-
-VOID GetMouseState(VOID);
+HRESULT InitDinput(HWND hWnd);
 
 VOID CustomImageVerticies(CustomVertex *pCustomVertex, FLOAT posX, FLOAT posY, FLOAT scaleX, FLOAT scaleY,
 	DWORD color = 0xFFFFFFFF, FLOAT startPosTu = 0.f, FLOAT startPosTv = 0.f, FLOAT scaleTu = 1.f, FLOAT scaleTv = 1.f, FLOAT scaleImageX = 1.f, FLOAT scaleImageY = 1.f);
@@ -120,3 +131,15 @@ RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT for
 VOID PrepareRender(VOID);
 
 VOID CleanUpRender(VOID);
+
+VOID GetKeyInfo(VOID);
+
+VOID UpdatePrevKeyInfo(VOID);
+
+VOID GetMouseInfo(VOID);
+
+VOID UpdatePrevMouseInfo(VOID);
+
+VOID SetViewPoint(VOID);
+
+VOID SetFocusOfView(VOID);
