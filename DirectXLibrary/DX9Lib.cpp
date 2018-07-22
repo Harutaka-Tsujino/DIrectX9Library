@@ -3,7 +3,7 @@
 #include<d3dx9.h>
 #include <dinput.h>
 #include <memory.h>
-#include "Header.h"
+#include "DX9Lib.h"
 
 #pragma comment(lib,"d3dx9d.lib")
 #pragma comment(lib,"d3d9.lib")
@@ -49,9 +49,7 @@ VOID Control(FLOAT *moveX)
 
 VOID Render(FLOAT *moveX)
 {
-	SetViewPoint();
-
-	SetFocusOfView();
+	SetCamera();
 
 	enum TEX
 	{
@@ -87,11 +85,11 @@ VOID Render(FLOAT *moveX)
 
 	CV testMoved[4];
 
-	RotateImageDeg(testMoved, testSrc, (FLOAT)(frameCount * 6), yAXIS);
+	RotateImageDeg(testMoved, testSrc, (FLOAT)(frameCount * 6), Y_AXIS);
 
 	CirculateImageDeg(testMoved, testMoved, (FLOAT)frameCount, 0.f, 0.f);
 
-	RotateImageDeg(testMoved, testMoved, (FLOAT)(frameCount * 3), zAXIS);
+	RotateImageDeg(testMoved, testMoved, (FLOAT)(frameCount * 3), Z_AXIS);
 
 	MoveImage(testMoved, testMoved, *moveX, 0);
 
@@ -497,7 +495,7 @@ VOID RotateImageDeg(CustomVertex *dest, CustomVertex *src, FLOAT degree, INT axi
 
 	switch (axis)
 	{
-	case xAXIS:
+	case X_AXIS:
 
 		for (INT vertex = 0; vertex < 4; vertex++)
 		{
@@ -508,7 +506,7 @@ VOID RotateImageDeg(CustomVertex *dest, CustomVertex *src, FLOAT degree, INT axi
 
 		break;
 
-	case yAXIS:
+	case Y_AXIS:
 
 		for (INT vertex = 0; vertex < 4; vertex++)
 
@@ -520,7 +518,7 @@ VOID RotateImageDeg(CustomVertex *dest, CustomVertex *src, FLOAT degree, INT axi
 
 		break;
 
-	case zAXIS:
+	case Z_AXIS:
 
 		for (INT vertex = 0; vertex < 4; vertex++)
 		{
@@ -783,27 +781,22 @@ VOID UpdatePrevMouseInfo(VOID)
 	return;
 }
 
-VOID SetViewPoint(VOID)
+VOID SetCamera(VOID)
 {
 	D3DXMATRIXA16 matWorld;
 
 	D3DXMatrixIdentity(&matWorld);
 	g_pDirect3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
 
-	D3DXVECTOR3 vecEyePt(0.0f, 1.0f, -223.0f);
-	D3DXVECTOR3 vecLookatPt(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 vecUpVec(0.0f, 1.0f, 100.0f);
+	D3DXVECTOR3 vecEyePt(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 vecLookatPt(0.0f, 0.0f, 10.0f);
+	D3DXVECTOR3 vecUpVec(0.0f, 1.0f, 0.0f);
 	D3DXMATRIXA16 matView;
 	D3DXMatrixLookAtLH(&matView, &vecEyePt, &vecLookatPt, &vecUpVec);
 	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matView);
 
-	return;
-}
-
-VOID SetFocusOfView(VOID)
-{
 	D3DXMATRIXA16 matProj;
-	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 1.0f, 100.0f);
+	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 5.0f, -100.0f);
 	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matProj);
 
 	return;
