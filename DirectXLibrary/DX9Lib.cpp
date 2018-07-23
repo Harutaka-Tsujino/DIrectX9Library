@@ -1,4 +1,6 @@
-﻿#include <windows.h>
+﻿#pragma once
+
+#include <windows.h>
 #include <stdio.h>
 #include<d3dx9.h>
 #include <dinput.h>
@@ -20,119 +22,6 @@ D3DPRESENT_PARAMETERS g_Direct3DPresentParameters;
 
 KeyState g_keyState;
 MouseState g_mouseState;
-
-VOID Control(FLOAT *moveX);
-VOID Render(FLOAT *moveX);
-
-VOID FunctionFoo(VOID)
-{
-	static FLOAT moveX = 0;
-
-	Control(&moveX);
-	Render(&moveX);
-
-	return;
-}
-
-VOID Control(FLOAT *moveX)
-{
-	if (g_keyState.keyPush[DIK_G])
-	{
-		*moveX += 30;
-	}
-
-	if (g_mouseState.mousePush[1])
-	{
-		*moveX -= 30;
-	}
-}
-
-VOID Render(FLOAT *moveX)
-{
-	SetCamera();
-
-	enum TEX
-	{
-		bulletBlockTEX,
-		TEX_MAX
-	};
-
-	enum FONT
-	{
-		testFONT,
-		FONT_MAX
-	};
-
-	static INT frameCount = -1;
-
-	static TEXTUREID textureIds[TEX_MAX];
-
-	static FONTID fontIds[FONT_MAX];
-
-	if (frameCount == -1)
-	{
-		RoadTexture("bulletBlock.png", &textureIds[bulletBlockTEX]);
-		SetFont(40, 40, "Times New Roman", &fontIds[testFONT], 20);
-
-		frameCount = 0;
-	}
-
-	typedef CustomVertex CV;
-
-	CV testSrc[4];
-
-	CustomImageVerticies(testSrc, 200.f, 200.f, 200.f, 200.f, GetColor(255, 64, 65, 240));
-
-	CV testMoved[4];
-
-	RotateImageDeg(testMoved, testSrc, (FLOAT)(frameCount * 6), Y_AXIS);
-
-	CirculateImageDeg(testMoved, testMoved, (FLOAT)frameCount, 0.f, 0.f);
-
-	RotateImageDeg(testMoved, testMoved, (FLOAT)(frameCount * 3), Z_AXIS);
-
-	MoveImage(testMoved, testMoved, *moveX, 0);
-
-	DrawImage(testMoved, textureIds[bulletBlockTEX]);
-	
-	if (g_mouseState.mouseHold[0]|| g_mouseState.mouseHold[1]|| g_mouseState.mouseHold[2]|| g_mouseState.mouseHold[3])
-	{
-		WriteText(300, 300, "testTestTEST", DT_RIGHT, fontIds[testFONT]);
-	}
-
-	frameCount++;
-
-	if (frameCount > 120000)
-	{
-		frameCount = 0;
-	}
-
-	return;
-}
-
-INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR szStr, INT iCmdShow)
-{
-	return CreateWindowAndRepeatToControlAndRender(hInst, "testApp", FunctionFoo, DISPLAY_WIDTH, DISPLAY_HEIGHT,FALSE);
-}
-
-//VOID FreeDx(INT g_texMax,INT)
-//{
-//	if (g_pDirectInputDevice)
-//	{
-//		g_pDirectInputDevice->Unacquire();
-//	}
-//
-//	SAFE_RELEASE(g_pDirectInputDevice);
-//	SAFE_RELEASE(g_pDirectInput);
-//
-//	for (int texture = 0; texture < g_texMax; texture++)
-//	{
-//		SAFE_RELEASE(g_pDirect3DTexture[texture]);
-//	}
-//
-//	SAFE_RELEASE(g_pDirect3DDevice);
-//	SAFE_RELEASE(g_pDirect3D);
-//}
 
 INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName, VOID(*func)(VOID), INT displayWidth, INT displayHeight,BOOL cullPolygon)
 {
@@ -402,28 +291,6 @@ HRESULT InitDinput(HWND hWnd)
 	memset(&g_mouseState, 0, sizeof(MouseState));
 
 	return S_OK;
-}
-
-VOID Render(VOID)
-{
-	typedef struct
-	{
-		FLOAT m_x;
-		FLOAT m_y;
-		FLOAT m_scaleX;
-		FLOAT m_scaleY;
-	}ImageState;
-
-	typedef struct
-	{
-		FLOAT m_x;
-		FLOAT m_y;
-		FLOAT m_z;
-		FLOAT m_rhw;
-		DWORD m_color;
-		FLOAT m_tu;
-		FLOAT m_tv;
-	}CustomVertex;
 }
 
 VOID CustomImageVerticies(CustomVertex *pCustomVertex, FLOAT posX, FLOAT posY, FLOAT scaleX, FLOAT scaleY,
@@ -781,23 +648,23 @@ VOID UpdatePrevMouseInfo(VOID)
 	return;
 }
 
-VOID SetCamera(VOID)
-{
-	D3DXMATRIXA16 matWorld;
-
-	D3DXMatrixIdentity(&matWorld);
-	g_pDirect3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
-
-	D3DXVECTOR3 vecEyePt(0.0f, 0.0f, 0.0f);
-	D3DXVECTOR3 vecLookatPt(0.0f, 0.0f, 10.0f);
-	D3DXVECTOR3 vecUpVec(0.0f, 1.0f, 0.0f);
-	D3DXMATRIXA16 matView;
-	D3DXMatrixLookAtLH(&matView, &vecEyePt, &vecLookatPt, &vecUpVec);
-	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matView);
-
-	D3DXMATRIXA16 matProj;
-	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 5.0f, -100.0f);
-	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matProj);
-
-	return;
-}
+//VOID SetCamera(VOID)
+//{
+//	D3DXMATRIXA16 matWorld;
+//
+//	D3DXMatrixIdentity(&matWorld);
+//	g_pDirect3DDevice->SetTransform(D3DTS_WORLD, &matWorld);
+//
+//	D3DXVECTOR3 vecEyePt(0.0f, 0.0f, 0.0f);
+//	D3DXVECTOR3 vecLookatPt(0.0f, 0.0f, 10.0f);
+//	D3DXVECTOR3 vecUpVec(0.0f, 1.0f, 0.0f);
+//	D3DXMATRIXA16 matView;
+//	D3DXMatrixLookAtLH(&matView, &vecEyePt, &vecLookatPt, &vecUpVec);
+//	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matView);
+//
+//	D3DXMATRIXA16 matProj;
+//	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, 1.0f, 5.0f, -100.0f);
+//	g_pDirect3DDevice->SetTransform(D3DTS_VIEW, &matProj);
+//
+//	return;
+//}

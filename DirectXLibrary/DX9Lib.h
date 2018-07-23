@@ -70,116 +70,6 @@ enum INPUT_DEVICE
 };
 
 /**
-* @struct ImageState
-* 画像の位置と幅を保持する
-*/
-typedef struct
-{
-	//! 画像の中心のx座標
-	FLOAT m_x;
-
-	//! 画像の中心のy座標
-	FLOAT m_y;
-
-	//! 画像の中心からx方向の幅
-	FLOAT m_scaleX;
-
-	//! 画像の中心からy方向の幅
-	FLOAT m_scaleY;
-
-}ImageState;
-
-/**
-* @struct CustomVertex
-* ポリゴンの頂点の位置と重みの逆数と色とテクスチャの貼り付け位置を保持する
-*/
-typedef struct
-{
-	//! 頂点のx座標
-	FLOAT m_x;
-	
-	//! 頂点のy座標
-	FLOAT m_y;
-	
-	//! 頂点のz座標
-	FLOAT m_z;
-	
-	//! 頂点の重みの逆数
-	FLOAT m_rhw;
-	
-	//! 頂点のカラー(ARBG)
-	DWORD m_color;
-	
-	//! テクスチャのx座標の貼り付け位置
-	FLOAT m_tu;
-	
-	//! テクスチャのy座標の貼り付け位置
-	FLOAT m_tv;
-
-}CustomVertex;
-
-/**
-* @struct KeyState
-* キーボードの入力状態を保持する
-*/
-typedef struct
-{
-	//! 現在でフレームのキーボードのキーが押されていた場合上位ビットが立つ
-	BYTE diks[256];
-	
-	//! 前回のでフレームのキーボードのキーが押されていた場合上位ビットが立つ
-	BYTE prevDiks[256];
-	
-	//! キーボードのキーが押された瞬間のフレームだけTRUE
-	BOOL keyPush[256];
-	
-	//! キーボードのキーが押され続けられている間TRUE
-	BOOL keyHold[256];
-	
-	//! キーボードのキーが離された瞬間のフレームだけTRUE
-	BOOL keyRelease[256];
-	
-	//! キーボードのキーが前回と現在のフレームで押されていない間TRUE
-	BOOL keyUninput[256];
-
-}KeyState;
-
-//! キーボードの入力状態
-extern KeyState g_keyState;
-
-/**
-* @struct MouseState
-* マウスのカーソルの位置ボタンの入力状態を保持する
-*/
-typedef struct
-{
-	//! 現在のフレームでの前回のカーソル位置からの相対位置とボタンの入力状態
-	DIMOUSESTATE directInputMouseState;
-	
-	//! 前回のフレームでの前回のカーソル位置からの相対位置とボタンの入力状態
-	DIMOUSESTATE prevDirectInputMouseState;
-	
-	//! カーソルの絶対座標
-	POINT absolutePos;
-	
-	//! マウスのボタンが押された瞬間のフレームだけTRUE
-	BOOL mousePush[4];
-	
-	//! マウスのボタンが押され続けられている間TRUE
-	BOOL mouseHold[4];
-	
-	//! マウスのボタンが離された瞬間のフレームだけTRUE
-	BOOL mouseRelease[4];
-	
-	//! マウスのボタンが前回と現在のフレームで押されていない間TRUE
-	BOOL mouseUninput[4];
-
-}MouseState;
-
-//! マウスのカーソル位置ボタンの入力状態
-extern MouseState g_mouseState;
-
-/**
 * @fn
 * @brief ウィンドウを生成し引数に渡した関数を呼び出し続ける関数
 * @param (hInst) HINSTANCE インスタンスハンドル
@@ -211,28 +101,8 @@ INT CreateWindowAndRepeatToControlAndRender(HINSTANCE hInst, const CHAR *appName
 */
 VOID CreateWindowOverall(HWND *hWnd, MSG *msg, HINSTANCE hInst, const CHAR *appName, INT displayWidth, INT displayHeight);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 INT ConfirmMessage(MSG *msg);
 
 /**
@@ -248,125 +118,152 @@ enum COORDINATEFPS_ACTION
 	UPDATE_TIME
 };
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 INT CoordinateFPS(INT action, UINT frame = 60);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 HRESULT InitDirect3D(VOID);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 VOID SetBuckBufferOverall(VOID);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 HRESULT InitDirect3DDevice(HWND hWnd, BOOL cullPolygon);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 VOID SetRenderStateOverall(BOOL cullPolygon);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 VOID SetTextureStageStateOverall(VOID);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 HRESULT InitDinput(HWND hWnd);
 
+VOID PrepareRender(VOID);
+
+VOID CleanUpRender(VOID);
+
+VOID GetKeyInfo(VOID);
+
+VOID UpdatePrevKeyInfo(VOID);
+
+VOID GetMouseInfo(VOID);
+
+VOID UpdatePrevMouseInfo(VOID);
+
+//VOID SetCamera(VOID);
+
 /**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
+* @struct ImageState
+* 画像の位置と幅を保持する
 */
+typedef struct
+{
+	//! 画像の中心のx座標
+	FLOAT m_x;
+
+	//! 画像の中心のy座標
+	FLOAT m_y;
+
+	//! 画像の中心からx方向の幅
+	FLOAT m_scaleX;
+
+	//! 画像の中心からy方向の幅
+	FLOAT m_scaleY;
+
+}ImageState;
+
+/**
+* @struct CustomVertex
+* ポリゴンの頂点の位置と重みの逆数と色とテクスチャの貼り付け位置を保持する
+*/
+typedef struct
+{
+	//! 頂点のx座標
+	FLOAT m_x;
+
+	//! 頂点のy座標
+	FLOAT m_y;
+
+	//! 頂点のz座標
+	FLOAT m_z;
+
+	//! 頂点の重みの逆数
+	FLOAT m_rhw;
+
+	//! 頂点のカラー(ARBG)
+	DWORD m_color;
+
+	//! テクスチャのx座標の貼り付け位置
+	FLOAT m_tu;
+
+	//! テクスチャのy座標の貼り付け位置
+	FLOAT m_tv;
+
+}CustomVertex;
+
+/**
+* @struct KeyState
+* キーボードの入力状態を保持する
+*/
+typedef struct
+{
+	//! 現在でフレームのキーボードのキーが押されていた場合上位ビットが立つ
+	BYTE diks[256];
+
+	//! 前回のでフレームのキーボードのキーが押されていた場合上位ビットが立つ
+	BYTE prevDiks[256];
+
+	//! キーボードのキーが押された瞬間のフレームだけTRUE
+	BOOL keyPush[256];
+
+	//! キーボードのキーが押され続けられている間TRUE
+	BOOL keyHold[256];
+
+	//! キーボードのキーが離された瞬間のフレームだけTRUE
+	BOOL keyRelease[256];
+
+	//! キーボードのキーが前回と現在のフレームで押されていない間TRUE
+	BOOL keyUninput[256];
+
+}KeyState;
+
+//! キーボードの入力状態
+extern KeyState g_keyState;
+
+/**
+* @struct MouseState
+* マウスのカーソルの位置ボタンの入力状態を保持する
+*/
+typedef struct
+{
+	//! 現在のフレームでの前回のカーソル位置からの相対位置とボタンの入力状態
+	DIMOUSESTATE directInputMouseState;
+
+	//! 前回のフレームでの前回のカーソル位置からの相対位置とボタンの入力状態
+	DIMOUSESTATE prevDirectInputMouseState;
+
+	//! カーソルの絶対座標
+	POINT absolutePos;
+
+	//! マウスのボタンが押された瞬間のフレームだけTRUE
+	BOOL mousePush[4];
+
+	//! マウスのボタンが押され続けられている間TRUE
+	BOOL mouseHold[4];
+
+	//! マウスのボタンが離された瞬間のフレームだけTRUE
+	BOOL mouseRelease[4];
+
+	//! マウスのボタンが前回と現在のフレームで押されていない間TRUE
+	BOOL mouseUninput[4];
+
+}MouseState;
+
+//! マウスのカーソル位置ボタンの入力状態
+extern MouseState g_mouseState;
+
+
+//startPosTuTv,scaleTuTvなどは画像の座標,scaleImageは画像のサイズ
 VOID CustomImageVerticies(CustomVertex *pCustomVertex, FLOAT posX, FLOAT posY, FLOAT scaleX, FLOAT scaleY,
 	DWORD color = 0xFFFFFFFF, FLOAT startPosTu = 0.f, FLOAT startPosTv = 0.f, FLOAT scaleTu = 1.f, FLOAT scaleTv = 1.f, FLOAT scaleImageX = 1.f, FLOAT scaleImageY = 1.f);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//startPosTuTv,scaleTuTvなどは画像の座標,scaleImageは画像のサイズ
 VOID SetImageTuTv(CustomVertex *dest, CustomVertex *src, FLOAT startPosTu, FLOAT startPosTv, FLOAT scaleTu, FLOAT scaleTv, FLOAT scaleImageX, FLOAT scaleImageY);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 DWORD GetColor(UCHAR alpha, UCHAR red, UCHAR blue, UCHAR green);
 
 /**
@@ -385,182 +282,24 @@ enum AXIS
 	Z_AXIS
 };
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//axisは回転軸,realativeCenterPosXYは画像の回転座標で画像の相対座標を入れる
 VOID RotateImageDeg(CustomVertex *dest, CustomVertex *src, FLOAT degree, INT axis = Z_AXIS, FLOAT relativeCenterPosX = 0.f, FLOAT relativeCenterPosY = 0.f);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//moveXY画像の移動量
 VOID MoveImage(CustomVertex *dest, CustomVertex *src, FLOAT moveX, FLOAT moveY);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//circulationCenterPosXYは円運動の中心座標
 VOID CirculateImageDeg(CustomVertex *dest, CustomVertex *src, FLOAT degree, FLOAT circulationCenterPosX, FLOAT circulationCenterPosY);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//expansionRateXYは画像の縮小率 2.fなら二倍になる
 VOID RescaleImage(CustomVertex *dest, CustomVertex *src, FLOAT expansionRateX, FLOAT expansionRateY);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 RENDER_FUNC_RETURN_VAL RoadTexture(const CHAR *pTexturePass, TEXTUREID *pTextureId);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
 RENDER_FUNC_RETURN_VAL DrawImage(CustomVertex *pCustomVertex, TEXTUREID textureId);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
+//thicknessは文字の太さ
 RENDER_FUNC_RETURN_VAL SetFont(INT scaleX, UINT scaleY, const CHAR *pFontType, FONTID *pFontId, UINT thickness = 0);
 
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT format, FONTID pFontId, DWORD color =0xFFFFFFFF);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID PrepareRender(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID CleanUpRender(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID GetKeyInfo(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID UpdatePrevKeyInfo(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID GetMouseInfo(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID UpdatePrevMouseInfo(VOID);
-
-/**
-* @fn
-* ここに関数の説明を書く
-* @brief 要約説明
-* @param (引数名) 引数の説明
-* @param (引数名) 引数の説明
-* @return 戻り値の説明
-* @sa 参照すべき関数を書けばリンクが貼れる
-* @detail 詳細な説明
-*/
-VOID SetCamera(VOID);
+//pTextは文字列の先頭アドレス
+RENDER_FUNC_RETURN_VAL WriteText(INT posX, INT posY, const CHAR *pText, UINT format, FONTID pFontId, DWORD color = 0xFFFFFFFF);
